@@ -124,8 +124,10 @@ object TranscriptionEngine {
         // Two halves, because a run has two uninterruptible phases: decoding (Kotlin, reads this
         // flag) and whisper itself (native, reads its own).
         abortRequested.set(true)
-        runCatching { WhisperNative.requestAbort() }
-            .onFailure { AppLogger.w(TAG, "Abort request failed: ${it.message}") }
+        if (WhisperNative.isNativeAvailable) {
+            runCatching { WhisperNative.requestAbort() }
+                .onFailure { AppLogger.w(TAG, "Abort request failed: ${it.message}") }
+        }
     }
 
     /**

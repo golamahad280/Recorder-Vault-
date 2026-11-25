@@ -197,12 +197,6 @@ android {
                 enableV2Signing = true
             }
         }
-        create("debugConfig") {
-            storeFile = file("${rootDir}/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
     }
     buildTypes {
         release {
@@ -246,7 +240,6 @@ android {
         // everywhere. Plain `installDebug` is likewise unaffected, so the normal
         // reinstall-over-the-top dev loop still works.
         debug {
-            signingConfig = signingConfigs.getByName("debugConfig")
             if (isolateTestApp) {
                 applicationIdSuffix = ".instrtest"
                 manifestPlaceholders["recorderAuthority"] = "com.baba.callvault.instrtest.recorder"

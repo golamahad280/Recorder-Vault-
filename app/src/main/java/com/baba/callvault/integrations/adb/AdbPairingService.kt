@@ -87,13 +87,17 @@ class AdbPairingService : Service() {
             }
             ACTION_STOP -> {
                 stopWaitingForWd(); stopSearch()
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf(); null
+                stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(); null
             }
             else -> return START_NOT_STICKY
         }
         if (notification != null) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            runCatching {
+                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            }.onFailure {
+                AppLogger.e(TAG, "startForeground failed", it)
+                postNotification(notification)
+            }
         }
         // NOT_STICKY: pairing is a one-shot, user-driven flow. We must never let the system
         // re-deliver ACTION_REPLY (which would re-run the handshake and post a duplicate "Paired ✓").
@@ -169,7 +173,9 @@ class AdbPairingService : Service() {
                     AppLogger.i(TAG, "Wireless debugging turned on — starting pairing discovery")
                     stopWaitingForWd()
                     beginDiscovery()
-                    postNotification(searchingNotification())
+                    runCatching {
+                        postNotification(searchingNotification())
+                    }.onFailure { AppLogger.e(TAG, "notify(searching) after WD-on failed", it) }
                 }
             }
         }
@@ -198,7 +204,9 @@ class AdbPairingService : Service() {
                 )
                 stopWaitingForWd()
                 beginDiscovery()
-                postNotification(searchingNotification())
+                runCatching {
+                    postNotification(searchingNotification())
+                }.onFailure { AppLogger.e(TAG, "notify(searching) after WD-on failed", it) }
             }
         }.also { it.start() }
         // Heartbeats: what the setting reads while the user is in the system pairing dialog, with timings.

@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.baba.callvault.R
 import com.baba.callvault.server.RecorderBackend
+import com.baba.callvault.system.permissions.PermissionChecks
 import com.baba.callvault.utils.AppLogger
 import com.baba.callvault.system.health.SilentFailureNotifier
 
@@ -49,11 +50,19 @@ class AdbConnectionService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(
-            NOTIF_ID,
-            buildNotification(getString(R.string.notif_startup_preparing)),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
-        )
+        runCatching {
+            startForeground(
+                NOTIF_ID,
+                buildNotification(getString(R.string.notif_startup_preparing)),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            )
+        }.onFailure {
+            AppLogger.e(TAG, "startForeground failed", it)
+            if (PermissionChecks.hasNotificationPermission(this)) {
+                getSystemService(NotificationManager::class.java)
+                    .notify(NOTIF_ID, buildNotification(getString(R.string.notif_startup_preparing)))
+            }
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             // Always bring up the persistent recorder daemon on boot so calls record hands-free.
