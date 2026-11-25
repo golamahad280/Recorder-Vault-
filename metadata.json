@@ -1,0 +1,8 @@
+{
+  "name": "Recorder Vault",
+  "description": "Privacy-first call recording, playback, transcription, and summary vault for Android.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
