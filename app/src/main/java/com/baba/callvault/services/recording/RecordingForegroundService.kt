@@ -798,7 +798,7 @@ class RecordingForegroundService : Service() {
         val activeSession = (currentState as? RecordingServiceState.Active)?.engine
         if (activeSession == null) {
             AppLogger.d(TAG, "No active session, exiting standby state, removing foreground notification and stopping service.")
-            runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
+            stopForeground(STOP_FOREGROUND_REMOVE)
             // Hands the shared notification back, so "Ready to record calls" replaces the finished call.
             SharedStatusNotice.release()
             stopSelf() // Stop the service since the session is over
@@ -936,9 +936,9 @@ class RecordingForegroundService : Service() {
         MicOpAutoHeal.scheduleAfterCall(applicationContext, "the carrier recording")
         currentState = RecordingServiceState.Standby(null)
         AppLogger.i(TAG, "The recording session has been stopped and resources have been released. Stopping foreground service. Goodbye >3")
-        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
-            // Hands the shared notification back, so "Ready to record calls" replaces the finished call.
-            SharedStatusNotice.release()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        // Hands the shared notification back, so "Ready to record calls" replaces the finished call.
+        SharedStatusNotice.release()
         stopSelf() // Stop the service since the session is over
     }
 
@@ -1278,25 +1278,23 @@ class RecordingForegroundService : Service() {
             SharedStatusNotice.release()
             RecordingNotificationHelper.SERVICE_NOTIFICATION_ID
         }
-        runCatching {
-            if (Build.VERSION.SDK_INT >= 34) {
-                // specialUse is the best type to use from Android 14+ for our call recording use-cases.
-                // See: https://developer.android.com/about/versions/14/changes/fgs-types-required#special-use
-                startForeground(
-                    notificationId,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-                )
-            } else {
-                // Android 11-13 uses the not yet restricted Data Sync type.
-                // Starting Android 15, dataSync type is restricted to a total of 6 hours runtime in a specific time period.
-                startForeground(
-                    notificationId,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                )
-            }
-        }.onFailure { AppLogger.e(TAG, "startForeground failed", it) }
+        if (Build.VERSION.SDK_INT >= 34) {
+            // specialUse is the best type to use from Android 14+ for our call recording use-cases.
+            // See: https://developer.android.com/about/versions/14/changes/fgs-types-required#special-use
+            startForeground(
+                notificationId,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        } else {
+            // Android 11-13 uses the not yet restricted Data Sync type.
+            // Starting Android 15, dataSync type is restricted to a total of 6 hours runtime in a specific time period.
+            startForeground(
+                notificationId,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        }
     }
 }
 

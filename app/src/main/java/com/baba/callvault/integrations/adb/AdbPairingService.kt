@@ -87,18 +87,13 @@ class AdbPairingService : Service() {
             }
             ACTION_STOP -> {
                 stopWaitingForWd(); stopSearch()
-                runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
+                stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf(); null
             }
             else -> return START_NOT_STICKY
         }
         if (notification != null) {
-            runCatching {
-                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-            }.onFailure {
-                AppLogger.e(TAG, "startForeground failed", it)
-                postNotification(notification)
-            }
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         }
         // NOT_STICKY: pairing is a one-shot, user-driven flow. We must never let the system
         // re-deliver ACTION_REPLY (which would re-run the handshake and post a duplicate "Paired ✓").
@@ -232,7 +227,7 @@ class AdbPairingService : Service() {
     private fun onWaitTimedOut() {
         AppLogger.w(TAG, "Wireless debugging not enabled within timeout (+${sinceCreateMs()}ms) — stopping pairing service; ${wdReadForLog()}")
         stopWaitingForWd()
-        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -280,7 +275,7 @@ class AdbPairingService : Service() {
                 AppLogger.e(TAG, "ADB pairing failed on port $port: $msg", paired.exceptionOrNull())
                 postNotification(resultNotification(getString(R.string.notif_pairing_failed_title), msg))
             }
-            runCatching { stopForeground(STOP_FOREGROUND_DETACH) }
+            stopForeground(STOP_FOREGROUND_DETACH)
             stopSelf()
         }
         return workingNotification()
@@ -317,9 +312,7 @@ class AdbPairingService : Service() {
 
     private fun postNotification(notification: Notification) {
         if (!PermissionChecks.hasNotificationPermission(this)) return
-        runCatching {
-            getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
-        }.onFailure { AppLogger.w(TAG, "Failed to post pairing notification: ${it.message}") }
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification)
     }
 
     // ---- Notifications ----

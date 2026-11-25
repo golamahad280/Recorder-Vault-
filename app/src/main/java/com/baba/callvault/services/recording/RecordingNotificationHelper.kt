@@ -327,9 +327,7 @@ class RecordingNotificationHelper(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_ERROR)
             .build()
         if (PermissionChecks.hasNotificationPermission(context)) {
-            runCatching {
-                context.getSystemService(NotificationManager::class.java).notify(ERROR_NOTIFICATION_ID, notification)
-            }
+            context.getSystemService(NotificationManager::class.java).notify(ERROR_NOTIFICATION_ID, notification)
         }
         vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100, 800), intArrayOf(0, 46, 184), -1))
     }

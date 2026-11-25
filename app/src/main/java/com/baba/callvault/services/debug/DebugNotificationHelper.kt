@@ -78,12 +78,12 @@ object DebugNotificationHelper {
         // informs the user, so we don't force a permission prompt here. Guarding explicitly (rather than
         // relying on notify()'s silent no-op) satisfies the MissingPermission lint check.
         if (!PermissionChecks.hasNotificationPermission(context)) return
-        runCatching { NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification) }
+        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
     }
 
     /** Clears the reminder. */
     fun cancel(context: Context) {
-        runCatching { NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID) }
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
     }
 
     private fun createChannel(context: Context) {
